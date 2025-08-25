@@ -1,0 +1,21 @@
+# Arquivos gerados pelo Maven/Gradle
+target/
+build/
+
+# Logs
+*.log
+
+# Arquivos de IDEs
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos gerados pelo compilador
+# (Adicione aqui as extensões dos arquivos que seu compilador irá gerar)
+*.class
