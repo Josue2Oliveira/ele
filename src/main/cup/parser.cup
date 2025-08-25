@@ -1,0 +1,17 @@
+// --- Seção 1: Código Preliminar e Imports ---
+package com.github.josue2oliveira.ele.parser;
+
+import java_cup.runtime.*;
+
+parser code {:
+    public void report_error(String message, Object info) {
+        System.err.println("Erro de sintaxe: " + message);
+    }
+:};
+
+// --- Seção 2: Declaração de Símbolos ---
+terminal SEMICOLON;
+non terminal program;
+
+// --- Seção 3: Regras da Gramática ---
+program ::= SEMICOLON;
