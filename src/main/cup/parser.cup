@@ -1,17 +1,40 @@
-// --- Seção 1: Código Preliminar e Imports ---
 package com.github.josue2oliveira.ele.parser;
 
 import java_cup.runtime.*;
 
+/* Código do parser (métodos utilitários) */
 parser code {:
+    @Override
     public void report_error(String message, Object info) {
         System.err.println("Erro de sintaxe: " + message);
     }
 :};
 
-// --- Seção 2: Declaração de Símbolos ---
-terminal SEMICOLON;
+/* Terminais */
+terminal T_INTEIRO, T_TEXTO, T_BOOLEANO;
+terminal T_SE, T_SENAO, T_ESCREVA;
+terminal T_VERDADEIRO, T_FALSO;
+
+/* Literais e Identificadores */
+terminal String IDENTIFICADOR;
+terminal Integer NUMERO_INTEIRO;
+terminal String LITERAL_TEXTO;
+
+/* Operadores */
+terminal OP_SOMA, OP_SUB, OP_MULT, OP_DIV;
+terminal OP_ATRIBUICAO;
+terminal OP_IGUAL, OP_DIFERENTE, OP_MAIOR, OP_MENOR;
+
+/* Delimitadores e Pontuação */
+terminal ABRE_PARENTESES, FECHA_PARENTESES;
+terminal ABRE_CHAVES, FECHA_CHAVES;
+terminal PONTO_VIRGULA, VIRGULA;
+
+/* Não-terminais */
 non terminal program;
 
-// --- Seção 3: Regras da Gramática ---
-program ::= SEMICOLON;
+/* Símbolo inicial */
+start with program;
+
+/* Regras */
+program ::= /* empty */ ;
