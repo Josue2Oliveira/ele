@@ -1,0 +1,21 @@
+int a;
+a = 10;
+
+int b;
+b = 20;
+
+int soma;
+soma = a + b;
+Print(soma);
+
+boolean maior;
+maior = a < b;
+
+if (maior) {
+    Print(a);
+} else {
+    Print(b);
+}
+
+float pi = 3.14;
+Print(pi);

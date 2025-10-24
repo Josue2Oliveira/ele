@@ -1,0 +1,14 @@
+int a = 10;
+int b = 20;
+
+boolean maior = a > b;
+Print(maior);
+
+boolean menor = a < b;
+Print(menor);
+
+boolean igual = a == b;
+Print(igual);
+
+boolean diferente = a != b;
+Print(diferente);

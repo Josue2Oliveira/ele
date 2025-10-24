@@ -1,0 +1,11 @@
+boolean a = true;
+boolean b = false;
+
+boolean e = a && b;
+Print(e);
+
+boolean ou = a || b;
+Print(ou);
+
+boolean nao = !a;
+Print(nao);

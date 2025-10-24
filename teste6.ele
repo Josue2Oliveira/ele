@@ -1,0 +1,11 @@
+int numero = 42;
+Print(numero);
+
+float decimal = 3.14;
+Print(decimal);
+
+boolean ativo = true;
+Print(ativo);
+
+boolean inativo = false;
+Print(inativo);
