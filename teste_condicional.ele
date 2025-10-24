@@ -1,0 +1,16 @@
+int idade;
+idade = 18;
+
+if (idade >= 18) {
+    Print(1);
+}
+
+int x = 10;
+int y = 20;
+
+if (x < y) {
+    Print(x);
+} else {
+    Print(y);
+}
+

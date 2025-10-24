@@ -1,0 +1,32 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Compilador ELE - teste.ele",
+            "request": "launch",
+            "mainClass": "com.github.josue2oliveira.ele.Main",
+            "projectName": "compilador-ele",
+            "args": "teste.ele",
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "java",
+            "name": "Compilador ELE - arquivo customizado",
+            "request": "launch",
+            "mainClass": "com.github.josue2oliveira.ele.Main",
+            "projectName": "compilador-ele",
+            "args": "${input:arquivoEle}",
+            "console": "integratedTerminal"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "arquivoEle",
+            "type": "promptString",
+            "description": "Digite o nome do arquivo .ele:",
+            "default": "teste.ele"
+        }
+    ]
+}
+

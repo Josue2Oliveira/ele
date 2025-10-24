@@ -1,8 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.josue2oliveira</groupId>
@@ -10,46 +10,41 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
+    <name>compilador-ele</name>
+    <description>Compilador ELE - Linguagem Educacional</description>
+
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <dependencies>
-        <!-- CUP Runtime -->
-        <dependency>
-            <groupId>com.github.vbmacher</groupId>
-            <artifactId>java-cup-runtime</artifactId>
-            <version>11b-20160615</version>
-        </dependency>
-    </dependencies>
-
     <build>
         <plugins>
-            <!-- JFlex -->
+
+            <!-- 🔹 Plugin do JFlex -->
             <plugin>
                 <groupId>de.jflex</groupId>
                 <artifactId>jflex-maven-plugin</artifactId>
                 <version>1.9.1</version>
                 <executions>
                     <execution>
+                        <id>generate-lexer</id>
+                        <phase>generate-sources</phase>
                         <goals>
                             <goal>generate</goal>
                         </goals>
                         <configuration>
                             <lexDefinitions>
-                                <lexDefinition>src/main/jflex/ele.flex</lexDefinition>
+                                <lexDefinition>${project.basedir}/src/main/jflex/ele.flex</lexDefinition>
                             </lexDefinitions>
-                            <outputDirectory>
-                                ${project.build.directory}/generated-sources/jflex
-                            </outputDirectory>
+                            <outputDirectory>${project.build.directory}/generated-sources/jflex</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
-            <!-- CUP -->
+            <!-- 🔹 Plugin do CUP -->
             <plugin>
                 <groupId>com.github.vbmacher</groupId>
                 <artifactId>cup-maven-plugin</artifactId>
@@ -60,53 +55,90 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <grammars>
-                                <grammar>src/main/cup/parser.cup</grammar>
-                            </grammars>
-                            <outputDirectory>
-                                ${project.build.directory}/generated-sources/cup
-                            </outputDirectory>
+                            <cupFile>src/main/cup/parser.cup</cupFile>
+                            <outputDirectory>${project.build.directory}/generated-sources/cup</outputDirectory>
+                            <symbolsClassName>sym</symbolsClassName>
+                            <parserClassName>Parser</parserClassName>
+                            <force>true</force>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
-            <!-- Compilador padrão -->
+            <!-- 🔹 Adiciona fontes geradas -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <release>17</release>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-
-            <!-- Empacotar com dependências -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
                 <version>3.3.0</version>
-                <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <archive>
-                        <manifest>
-                            <mainClass>com.github.josue2oliveira.ele.Main</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
                 <executions>
                     <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
+                        <id>add-sources</id>
+                        <phase>generate-sources</phase>
                         <goals>
-                            <goal>single</goal>
+                            <goal>add-source</goal>
                         </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/jflex</source>
+                                <source>${project.build.directory}/generated-sources/cup</source>
+                            </sources>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- 🔹 Renomeia parser.java para Parser.java -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>rename-parser</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <move file="${project.build.directory}/generated-sources/cup/com/github/josue2oliveira/ele/parser/parser.java"
+                                      tofile="${project.build.directory}/generated-sources/cup/com/github/josue2oliveira/ele/parser/Parser.java"/>
+                                <replace file="${project.build.directory}/generated-sources/cup/com/github/josue2oliveira/ele/parser/Parser.java"
+                                         token="public class parser"
+                                         value="public class Parser"/>
+                                <replace file="${project.build.directory}/generated-sources/cup/com/github/josue2oliveira/ele/parser/Parser.java"
+                                         token="public parser("
+                                         value="public Parser("/>
+                                <replace file="${project.build.directory}/generated-sources/cup/com/github/josue2oliveira/ele/parser/Parser.java"
+                                         token="class CUP$parser$actions"
+                                         value="class CUP$Parser$actions"/>
+                                <replace file="${project.build.directory}/generated-sources/cup/com/github/josue2oliveira/ele/parser/Parser.java"
+                                         token="private final parser parser;"
+                                         value="private final Parser parser;"/>
+                                <replace file="${project.build.directory}/generated-sources/cup/com/github/josue2oliveira/ele/parser/Parser.java"
+                                         token="CUP$parser$actions(parser parser)"
+                                         value="CUP$Parser$actions(Parser parser)"/>
+                                <replace file="${project.build.directory}/generated-sources/cup/com/github/josue2oliveira/ele/parser/Parser.java"
+                                         token="protected CUP$parser$actions action_obj;"
+                                         value="protected CUP$Parser$actions action_obj;"/>
+                                <replace file="${project.build.directory}/generated-sources/cup/com/github/josue2oliveira/ele/parser/Parser.java"
+                                         token="action_obj = new CUP$parser$actions(this);"
+                                         value="action_obj = new CUP$Parser$actions(this);"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
+
+    <dependencies>
+        <!-- ✅ CUP Runtime correto -->
+        <dependency>
+            <groupId>com.github.vbmacher</groupId>
+            <artifactId>java-cup-runtime</artifactId>
+            <version>11b-20160615</version>
+        </dependency>
+    </dependencies>
 </project>

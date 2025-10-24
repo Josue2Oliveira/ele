@@ -1,0 +1,16 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.compile.nullAnalysis.mode": "disabled",
+    "files.exclude": {
+        "**/target": false
+    },
+    "java.project.sourcePaths": [
+        "src/main/java",
+        "target/generated-sources/jflex",
+        "target/generated-sources/cup"
+    ],
+    "files.associations": {
+        "*.ele": "java"
+    }
+}
+

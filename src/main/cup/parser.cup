@@ -1,40 +1,230 @@
 package com.github.josue2oliveira.ele.parser;
 
 import java_cup.runtime.*;
+import com.github.josue2oliveira.ele.semantic.*;
+import com.github.josue2oliveira.ele.interpreter.*;
+import com.github.josue2oliveira.ele.ast.*;
+import java.util.*;
 
-/* Código do parser (métodos utilitários) */
+/* =======================
+   Código Java do parser
+   ======================= */
 parser code {:
+    public SymbolTable symbolTable = new SymbolTable();
+    public Interpreter interpreter = new Interpreter(symbolTable);
+    public Program program = new Program();
+    
     @Override
     public void report_error(String message, Object info) {
         System.err.println("Erro de sintaxe: " + message);
     }
+
+    @Override
+    public void report_fatal_error(String message, Object info) {
+        System.err.println("Erro fatal: " + message);
+        System.exit(1);
+    }
+    
+    public SymbolTable getSymbolTable() {
+        return symbolTable;
+    }
+    
+    public Interpreter getInterpreter() {
+        return interpreter;
+    }
+    
+    public Program getProgram() {
+        return program;
+    }
 :};
 
-/* Terminais */
-terminal T_INTEIRO, T_TEXTO, T_BOOLEANO;
-terminal T_SE, T_SENAO, T_ESCREVA;
-terminal T_VERDADEIRO, T_FALSO;
+/* =======================
+   Terminais (tokens)
+   ======================= */
 
-/* Literais e Identificadores */
-terminal String IDENTIFICADOR;
-terminal Integer NUMERO_INTEIRO;
-terminal String LITERAL_TEXTO;
+// Palavras-chave ELE
+terminal WHERE, UNTIL, BEGIN, END, X, Y, PRINT;
 
-/* Operadores */
-terminal OP_SOMA, OP_SUB, OP_MULT, OP_DIV;
-terminal OP_ATRIBUICAO;
-terminal OP_IGUAL, OP_DIFERENTE, OP_MAIOR, OP_MENOR;
+// Palavras-chave Java (compatibilidade)
+terminal IF, ELSE, FOR, WHILE, DO;
+terminal CLASS, PUBLIC, PRIVATE, PROTECTED;
+terminal INT, FLOAT, BOOLEAN, RETURN, VOID;
 
-/* Delimitadores e Pontuação */
-terminal ABRE_PARENTESES, FECHA_PARENTESES;
-terminal ABRE_CHAVES, FECHA_CHAVES;
-terminal PONTO_VIRGULA, VIRGULA;
+// Literais
+terminal Object BOOLEAN_LITERAL;
+terminal NULL_LITERAL;
+terminal Object INTEGER_LITERAL;
+terminal Object FLOATING_POINT_LITERAL;
+terminal Object STRING_LITERAL;
+terminal String IDENTIFIER;
 
-/* Não-terminais */
-non terminal program;
+// Separadores
+terminal LPAREN, RPAREN;
+terminal LBRACE, RBRACE;
+terminal LBRACK, RBRACK;
+terminal SEMICOLON, COMMA, DOT, COLON;
 
-/* Símbolo inicial */
+// Operadores
+terminal EQ, EQEQ, NOTEQ;
+terminal LT, GT, LTEQ, GTEQ;
+terminal PLUS, MINUS, MULT, DIV, MOD;
+terminal ANDAND, OROR, NOT;
+
+/* =======================
+   Não-terminais com tipos
+   ======================= */
+non terminal Program program;
+non terminal stmt_list;
+non terminal ASTNode stmt;
+non terminal String type_spec;
+non terminal ASTNode decl, assign_stmt, if_stmt, print_stmt;
+non terminal BlockStatement block, block_stmts;
+non terminal Expression expr;
+
+/* =======================
+   Precedência dos operadores
+   ======================= */
+precedence left OROR;
+precedence left ANDAND;
+precedence left EQEQ, NOTEQ;
+precedence left LT, GT, LTEQ, GTEQ;
+precedence left PLUS, MINUS;
+precedence left MULT, DIV, MOD;
+precedence right NOT;
+
+/* =======================
+   Símbolo inicial
+   ======================= */
 start with program;
 
-/* Regras */
-program ::= /* empty */ ;
+/* =======================
+   Regras de produção com AST
+   ======================= */
+
+program ::= stmt_list
+          {: RESULT = parser.program; :}
+          | /* vazio */
+          {: RESULT = parser.program; :}
+          ;
+
+stmt_list ::= stmt_list stmt:s
+            {: 
+                if (s != null) {
+                    parser.program.addStatement(s);
+                }
+            :}
+            | stmt:s
+            {: 
+                if (s != null) {
+                    parser.program.addStatement(s);
+                }
+            :}
+            ;
+
+stmt ::= decl:d
+       {: RESULT = d; :}
+       | assign_stmt:a
+       {: RESULT = a; :}
+       | if_stmt:i
+       {: RESULT = i; :}
+       | print_stmt:p
+       {: RESULT = p; :}
+       | SEMICOLON
+       {: RESULT = null; /* comando vazio */ :}
+       ;
+
+type_spec ::= INT
+            {: RESULT = "int"; :}
+            | FLOAT
+            {: RESULT = "float"; :}
+            | BOOLEAN
+            {: RESULT = "boolean"; :}
+            ;
+
+// Declaração sem inicialização
+decl ::= type_spec:type IDENTIFIER:id SEMICOLON
+       {: RESULT = new DeclStatement(type, id); :}
+       // Declaração com inicialização
+       | type_spec:type IDENTIFIER:id EQ expr:value SEMICOLON
+       {: RESULT = new DeclStatement(type, id, value); :}
+       ;
+
+// Atribuição separada
+assign_stmt ::= IDENTIFIER:id EQ expr:value SEMICOLON
+              {: RESULT = new AssignStatement(id, value); :}
+              ;
+
+// Bloco de comandos
+block ::= LBRACE
+        {:
+            BlockStatement b = new BlockStatement();
+            RESULT = b;
+        :}
+        block_stmts:b RBRACE
+        {: RESULT = b; :}
+        ;
+
+block_stmts ::= block_stmts:b stmt:s
+              {:
+                  if (s != null) {
+                      b.addStatement(s);
+                  }
+                  RESULT = b;
+              :}
+              | /* vazio */
+              {: RESULT = new BlockStatement(); :}
+              ;
+
+// If-else
+if_stmt ::= IF LPAREN expr:cond RPAREN block:thenBlock
+          {: RESULT = new IfStatement(cond, thenBlock); :}
+          | IF LPAREN expr:cond RPAREN block:thenBlock ELSE block:elseBlock
+          {: RESULT = new IfStatement(cond, thenBlock, elseBlock); :}
+          ;
+
+print_stmt ::= PRINT LPAREN expr:value RPAREN SEMICOLON
+             {: RESULT = new PrintStatement(value); :}
+             ;
+
+// Expressões com AST
+expr ::= expr:e1 PLUS expr:e2
+       {: RESULT = new BinaryExpression(e1, "+", e2); :}
+       | expr:e1 MINUS expr:e2
+       {: RESULT = new BinaryExpression(e1, "-", e2); :}
+       | expr:e1 MULT expr:e2
+       {: RESULT = new BinaryExpression(e1, "*", e2); :}
+       | expr:e1 DIV expr:e2
+       {: RESULT = new BinaryExpression(e1, "/", e2); :}
+       | expr:e1 MOD expr:e2
+       {: RESULT = new BinaryExpression(e1, "%", e2); :}
+       | expr:e1 EQEQ expr:e2
+       {: RESULT = new BinaryExpression(e1, "==", e2); :}
+       | expr:e1 NOTEQ expr:e2
+       {: RESULT = new BinaryExpression(e1, "!=", e2); :}
+       | expr:e1 LT expr:e2
+       {: RESULT = new BinaryExpression(e1, "<", e2); :}
+       | expr:e1 GT expr:e2
+       {: RESULT = new BinaryExpression(e1, ">", e2); :}
+       | expr:e1 LTEQ expr:e2
+       {: RESULT = new BinaryExpression(e1, "<=", e2); :}
+       | expr:e1 GTEQ expr:e2
+       {: RESULT = new BinaryExpression(e1, ">=", e2); :}
+       | expr:e1 ANDAND expr:e2
+       {: RESULT = new BinaryExpression(e1, "&&", e2); :}
+       | expr:e1 OROR expr:e2
+       {: RESULT = new BinaryExpression(e1, "||", e2); :}
+       | NOT expr:e
+       {: RESULT = new UnaryExpression("!", e); :}
+       | LPAREN expr:e RPAREN
+       {: RESULT = e; :}
+       | INTEGER_LITERAL:val
+       {: RESULT = new LiteralExpression(val); :}
+       | FLOATING_POINT_LITERAL:val
+       {: RESULT = new LiteralExpression(val); :}
+       | STRING_LITERAL:val
+       {: RESULT = new LiteralExpression(val); :}
+       | BOOLEAN_LITERAL:val
+       {: RESULT = new LiteralExpression(val); :}
+       | IDENTIFIER:id
+       {: RESULT = new VariableExpression(id); :}
+       ;

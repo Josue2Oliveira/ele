@@ -1,0 +1,22 @@
+int x = 10;
+int y = 20;
+int resultado;
+
+resultado = x + y;
+
+if (x < y) {
+    Print(x);
+    Print(y);
+}
+
+if (resultado > 100) {
+    Print(100);
+} else {
+    Print(50);
+}
+
+boolean ativo = true;
+
+float pi = 3.14;
+float raio = 5.0;
+

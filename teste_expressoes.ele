@@ -1,0 +1,15 @@
+int a = 10;
+int b = 5;
+
+int soma = a + b;
+Print(soma);
+
+int multiplicacao = a * b;
+Print(multiplicacao);
+
+int divisao = a / b;
+Print(divisao);
+
+boolean maior = a > b;
+Print(maior);
+

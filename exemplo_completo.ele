@@ -1,0 +1,42 @@
+// Exemplo completo de código ELE
+
+int x = 10;
+int y = 20;
+int resultado;
+
+// Teste de expressões aritméticas
+resultado = x + y * 2;
+
+// Teste de condicionais
+if (x < y) {
+    Print(x);
+    Print(y);
+}
+
+// Teste de condicionais com else
+if (resultado > 100) {
+    Print("Resultado maior que 100");
+} else {
+    Print("Resultado menor ou igual a 100");
+}
+
+// Teste de expressões lógicas
+boolean ativo = true;
+boolean verificado = false;
+
+if (ativo && !verificado) {
+    Print("Sistema ativo mas não verificado");
+}
+
+// Teste com float
+float pi = 3.14;
+float raio = 5.0;
+float area;
+
+area = pi * raio * raio;
+
+// Teste de comparações
+if (area >= 78.0 && area <= 79.0) {
+    Print("Área calculada corretamente");
+}
+
